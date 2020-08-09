@@ -1,35 +1,97 @@
-import React from 'react';
-import Box from '@material-ui/core/Box';
-import Grid from '@material-ui/core/Grid';
-import Pagination from '@material-ui/lab/Pagination';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import React, { Dispatch } from "react";
+import { connect, ConnectedProps } from "react-redux";
+import Box from "@material-ui/core/Box";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Grid from "@material-ui/core/Grid";
+import Pagination from "@material-ui/lab/Pagination";
 import RepoCard from "./repo-card";
-import {Repository} from "../../models/repository";
+import Typography from "@material-ui/core/Typography";
+import { ActionCreator } from "../../redux/reducer";
+import { Repository } from "../../core/models/repository";
+import { RequestStatus } from "../../core/enums/request-status";
+import { State } from "../../core/models/state";
+import { useState } from "react";
 
-interface Props {
-  items: Repository[],
-}
+const mapStateToProps = (state: State) => ({
+  repositories: state.repositories,
+  status: state.status,
+  pageCount: state.pageCount,
+  org: state.org,
+});
 
-export default function RepoList({items} : Props): JSX.Element {
+const mapDispatchToProps = (dispatch: Dispatch<any>) => ({
+  onPaginationChange(org: string, page: number) {
+    dispatch(ActionCreator.getRepositories(org, page));
+  },
+});
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+type Props = PropsFromRedux & {
+  repositories: Repository[] | null;
+  status: RequestStatus;
+  pageCount: number;
+  org: string;
+  onPaginationChange: (org: string, page: number) => void;
+};
+
+function RepoList({
+  repositories,
+  status,
+  pageCount,
+  org,
+  onPaginationChange,
+}: Props): JSX.Element {
+  const hasRepositories = !!repositories?.length;
+  const [page, setPage] = useState(1);
+  const notFoundMessage = (
+    <Typography gutterBottom variant="h5" color="error">
+      Sorry, there are no repositories for this organisation
+    </Typography>
+  );
+
   return (
     <React.Fragment>
-      <Box textAlign="center">
-        <CircularProgress />
-      </Box>
-      <Box flex="1">
-        <Grid container spacing={3}>
-            {items.map((repository) => {
-              return (
-                <Grid item lg={4} sm={6} key={repository.url}>
-                  <RepoCard {...repository}/>
-                </Grid>
-              );
-            })}
-        </Grid>
-      </Box>
-      <Box display="flex" justifyContent="center">
-        <Pagination count={10} variant="outlined"/>
-      </Box>
+      {status === RequestStatus.Pending && (
+        <Box textAlign="center">
+          <CircularProgress />
+        </Box>
+      )}
+
+      {status === RequestStatus.Success && (
+        <React.Fragment>
+          <Box flex="1">
+            {!hasRepositories && notFoundMessage}
+            <Grid container spacing={3}>
+              {repositories?.map((repository) => {
+                return (
+                  <Grid item lg={4} sm={6} xs={12} key={repository.url}>
+                    <RepoCard {...repository} />
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Box>
+          {pageCount > 0 && (
+            <Box display="flex" justifyContent="center" mt={3}>
+              <Pagination
+                count={pageCount}
+                page={page}
+                variant="outlined"
+                onChange={(event: object, page: number) => {
+                  onPaginationChange(org, page);
+                  setPage(page);
+                }}
+              />
+            </Box>
+          )}
+        </React.Fragment>
+      )}
+
+      {status === RequestStatus.Error && notFoundMessage}
     </React.Fragment>
   );
 }
+
+export default connector(RepoList);
