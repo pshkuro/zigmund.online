@@ -8,17 +8,7 @@ import Link from '@material-ui/core/Link';
 import Chip from '@material-ui/core/Chip';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-
-interface Props {
-  name: string,
-  description: string,
-  url: string,
-  statistics: {
-    forks: number,
-    watchers: number, 
-    stargazers: number,
-  }
-}
+import {Repository as Props} from "../../models/repository";
 
 const STATISTIC_ICON_MAPPING = new Map([
   ['forks', SwapCallsIcon],
@@ -46,7 +36,8 @@ export default function RepoCard({
         className={classes.chip} 
         variant="outlined"
         icon={Icon && <Icon />}
-        label={count} />
+        label={count}
+        key={name} />
     );
   });
 
