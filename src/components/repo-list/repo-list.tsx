@@ -10,7 +10,7 @@ import { ActionCreator } from "../../redux/reducer";
 import { Repository } from "../../core/models/repository";
 import { RequestStatus } from "../../core/enums/request-status";
 import { State } from "../../core/models/state";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const mapStateToProps = (state: State) => ({
   repositories: state.repositories,
@@ -43,13 +43,17 @@ function RepoList({
   org,
   onPaginationChange,
 }: Props): JSX.Element {
-  const hasRepositories = !!repositories?.length;
   const [page, setPage] = useState(1);
+  const hasRepositories = !!repositories?.length;
   const notFoundMessage = (
     <Typography gutterBottom variant="h5" color="error">
       Sorry, there are no repositories for this organisation
     </Typography>
   );
+
+  useEffect(() => {
+    setPage(1);
+  }, [org]);
 
   return (
     <React.Fragment>
@@ -73,7 +77,7 @@ function RepoList({
               })}
             </Grid>
           </Box>
-          {pageCount > 0 && (
+          {pageCount > 0 && hasRepositories && (
             <Box display="flex" justifyContent="center" mt={3}>
               <Pagination
                 count={pageCount}
