@@ -9,7 +9,6 @@ import { Theme, makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import VisibilityIcon from "@material-ui/icons/Visibility";
 import { Repository as Props } from "../../core/models/repository";
-import Box from "@material-ui/core/Box";
 
 const STATISTIC_ICON_MAPPING = new Map([
   ["forks", SwapCallsIcon],
